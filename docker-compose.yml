@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentforge_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: faiz_secure_password
+      POSTGRES_DB: agentforge
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentforge_redis
+    ports:
+      - "6379:6379"
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: agentforge_qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrantdata:/qdrant/storage
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: agentforge_server
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:faiz_secure_password@postgres:5432/agentforge?schema=public
+      - REDIS_URL=redis://redis:6379
+      - QDRANT_URL=http://qdrant:6333
+      - JWT_SECRET=agentforge_obsidian_key
+      - PORT=5000
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentforge_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+
+volumes:
+  pgdata:
+  qdrantdata:
