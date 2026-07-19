@@ -8,15 +8,15 @@ Follow this guide to deploy the AgentForge AI multi-agent platform. The **Vite R
 
 Render will host the backend server and its databases.
 
-### 1. Provision PostgreSQL Database
-1. Go to the [Render Dashboard](https://dashboard.render.com/) and click **New +** ➜ **PostgreSQL**.
-2. Set the following fields:
-   - **Name**: `agentforge-db`
-   - **Database**: `agentforge`
-   - **User**: `postgres`
-3. Click **Create Database**.
-4. Once active, copy the **Internal Database URL** (e.g., `postgresql://postgres:password@host/agentforge`).
-   > *Note: Save this URL as your `DATABASE_URL` environment variable.*
+### 1. Provision MongoDB Atlas Database
+1. Create a free or paid database cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. Go to **Database Access** and create a database user (e.g., `erenyaager146_db_user`).
+3. Go to **Network Access** and whitelist `0.0.0.0/0` (or add Render's IP addresses).
+4. Click **Connect** ➜ **Drivers** and copy your **connection string**:
+   ```text
+   mongodb+srv://erenyaager146_db_user:<password>@cluster0.mongodb.net/agentforge?retryWrites=true&w=majority
+   ```
+   > *Note: Save this connection string as your `DATABASE_URL` environment variable.*
 
 ### 2. Provision Redis Cache
 1. Click **New +** ➜ **Redis**.
@@ -60,7 +60,7 @@ Now that Postgres, Redis, and Qdrant are active, we can deploy the Node.js API s
 | :--- | :--- | :--- |
 | `PORT` | `5000` | The backend API server listener port |
 | `JWT_SECRET` | `your_custom_secure_secret_key` | Secret key for hashing user session JWT tokens |
-| `DATABASE_URL` | *Your Internal PostgreSQL URL* | e.g. `postgresql://postgres:pass@host/agentforge` |
+| `DATABASE_URL` | *Your MongoDB Atlas Connection String* | e.g. `mongodb+srv://erenyaager146_db_user:password@cluster.mongodb.net/agentforge` |
 | `REDIS_URL` | *Your Internal Redis URL* | e.g. `redis://host:port` |
 | `QDRANT_URL` | *Your Internal Qdrant URL* | e.g. `http://agentforge-qdrant:6333` |
 

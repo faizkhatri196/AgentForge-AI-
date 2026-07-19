@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -8,7 +8,7 @@ generator client {
 }
 
 model User {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   email          String         @unique
   passwordHash   String
   name           String
@@ -19,7 +19,7 @@ model User {
 }
 
 model Organization {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -30,11 +30,11 @@ model Organization {
 }
 
 model Member {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   role           String         @default("Member") // Owner, Admin, Member
-  userId         String
+  userId         String         @db.ObjectId
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId String
+  organizationId String         @db.ObjectId
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -43,12 +43,12 @@ model Member {
 }
 
 model Project {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   prompt         String
   status         String         @default("Planning") // Planning, Designing, Coding, Testing, Complete
   progress       Int            @default(0)
-  organizationId String
+  organizationId String         @db.ObjectId
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -58,13 +58,13 @@ model Project {
 }
 
 model Agent {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   roleType       String         // CEO, PM, Architect, UI_Designer, Engineer, QA, DevOps
   name           String
   systemPrompt   String
   model          String         // e.g. gpt-4o, claude-3-5-sonnet, gemini-1.5-pro
   status         String         @default("Idle") // Idle, Active, Blocked
-  projectId      String
+  projectId      String         @db.ObjectId
   project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tokensUsed     Int            @default(0)
   cost           Float          @default(0.0)
@@ -74,19 +74,19 @@ model Agent {
 }
 
 model Task {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   title          String
   status         String         @default("Pending") // Pending, Running, Success, Failed
   assignedRole   String         // CEO, PM, Engineer, etc.
-  projectId      String
+  projectId      String         @db.ObjectId
   project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 }
 
 model Message {
-  id             String         @id @default(uuid())
-  projectId      String
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String         @db.ObjectId
   fromAgent      String         // sender role
   toAgent        String         // recipient role
   payload        String         // JSON text content
@@ -94,8 +94,8 @@ model Message {
 }
 
 model Memory {
-  id             String         @id @default(uuid())
-  projectId      String
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String         @db.ObjectId
   category       String         // ShortTerm, LongTerm, Semantic
   content        String
   vectorId       String?        // Reference to Qdrant vector point uuid
@@ -103,10 +103,10 @@ model Memory {
 }
 
 model ApiKey {
-  id             String         @id @default(uuid())
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
   provider       String         // openai, anthropic, gemini, groq, deepseek, etc.
   keyEncrypted   String
-  organizationId String
+  organizationId String         @db.ObjectId
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
@@ -115,8 +115,8 @@ model ApiKey {
 }
 
 model Log {
-  id             String         @id @default(uuid())
-  projectId      String
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String         @db.ObjectId
   project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   agent          String
   message        String
@@ -125,8 +125,8 @@ model Log {
 }
 
 model Billing {
-  id             String         @id @default(uuid())
-  organizationId String         @unique
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  organizationId String         @unique @db.ObjectId
   organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   planTier       String         @default("Free") // Free, Team, Enterprise
   tokenCount     Int            @default(0)
