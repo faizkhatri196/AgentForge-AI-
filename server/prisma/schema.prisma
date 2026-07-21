@@ -102,6 +102,16 @@ model Memory {
   createdAt      DateTime       @default(now())
 }
 
+model DocumentChunk {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  projectId      String         @db.ObjectId
+  fileName       String
+  content        String
+  chunkIndex     Int
+  vector         Float[]
+  createdAt      DateTime       @default(now())
+}
+
 model ApiKey {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
   provider       String         // openai, anthropic, gemini, groq, deepseek, etc.

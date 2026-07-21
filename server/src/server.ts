@@ -161,10 +161,15 @@ app.post('/api/rag/upload', authenticateToken, upload.single('file'), async (req
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     const { projectId } = req.body;
     
-    // Find organization key for embeddings
-    const apiKeyRecord = await prisma.apiKey.findFirst({
+    // Find organization key for embeddings (try openai, then gemini)
+    let apiKeyRecord = await prisma.apiKey.findFirst({
       where: { organizationId: req.user.orgId, provider: 'openai' }
     });
+    if (!apiKeyRecord) {
+      apiKeyRecord = await prisma.apiKey.findFirst({
+        where: { organizationId: req.user.orgId, provider: 'gemini' }
+      });
+    }
 
     const chunks = await RagService.processDocument(
       req.file.originalname,
@@ -183,9 +188,15 @@ app.post('/api/rag/query', authenticateToken, async (req: any, res) => {
   try {
     const { query, projectId } = req.body;
     
-    const apiKeyRecord = await prisma.apiKey.findFirst({
+    // Find organization key for embeddings (try openai, then gemini)
+    let apiKeyRecord = await prisma.apiKey.findFirst({
       where: { organizationId: req.user.orgId, provider: 'openai' }
     });
+    if (!apiKeyRecord) {
+      apiKeyRecord = await prisma.apiKey.findFirst({
+        where: { organizationId: req.user.orgId, provider: 'gemini' }
+      });
+    }
 
     const results = await RagService.queryContext(
       query,
